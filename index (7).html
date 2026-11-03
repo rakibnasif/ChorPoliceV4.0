@@ -1,0 +1,3359 @@
+<!DOCTYPE html>
+<html lang="bn">
+
+<head>
+  <meta charset="utf-8">
+  <!-- this line makes the page fit phone screens -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chor Police Babu Dakat</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22%3E%3Crect%20x=%221%22%20y=%221%22%20width=%2298%22%20height=%2298%22%20rx=%2222%22%20fill=%22%2327244d%22%20stroke=%22%233b3769%22%20stroke-width=%221.2%22/%3E%3Cpath%20d=%22M50%2012%20L82%2024%20V52%20C82%2072%2068%2084%2050%2090%20C32%2084%2018%2072%2018%2052%20V24%20Z%22%20fill=%22%23f4b41a%22%20stroke=%22%23e0356f%22%20stroke-width=%223%22%20stroke-linejoin=%22round%22/%3E%3Cpolygon%20points=%220,-9%202.12,-2.91%208.56,-2.78%203.42,1.11%205.29,7.28%200,3.6%20-5.29,7.28%20-3.42,1.11%20-8.56,-2.78%20-2.12,-2.91%22%20fill=%22%2327244d%22%20transform=%22translate(50,35)%20scale(1.1)%22/%3E%3Crect%20x=%2228%22%20y=%2252%22%20width=%2244%22%20height=%2217%22%20rx=%228.5%22%20fill=%22%2327244d%22/%3E%3Ccircle%20cx=%2240%22%20cy=%2260.5%22%20r=%223.6%22%20fill=%22%2317b3a3%22/%3E%3Ccircle%20cx=%2260%22%20cy=%2260.5%22%20r=%223.6%22%20fill=%22%2317b3a3%22/%3E%3C/svg%3E">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1c1a38">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@500;700;800&family=Hind+Siliguri:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <!-- PeerJS: lets the 4 phones talk to each other, no server needed -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <style>
+    /* ===== Basic page ===== */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background-color: #1c1a38;
+      color: #fbf3df;
+      font-family: "Hind Siliguri", Arial, sans-serif;
+    }
+
+    h1,
+    .game-title,
+    .btn,
+    th,
+    .player-score,
+    .card-role,
+    .card-points,
+    .room-code {
+      font-family: "Baloo Da 2", Arial, sans-serif;
+    }
+
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* ===== Buttons ===== */
+    .btn {
+      background-color: #f4b41a;
+      color: #2a2552;
+      border: none;
+      border-radius: 30px;
+      padding: 12px 26px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 4px;
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      color: #fbf3df;
+      border: 2px solid #3b3769;
+      padding: 8px 18px;
+    }
+
+    .btn-teal {
+      background-color: #17b3a3;
+    }
+
+    .btn-pink {
+      background-color: #e0356f;
+      color: white;
+    }
+
+    /* ===== Home and lobby screens ===== */
+    #home,
+    #lobby,
+    #l-setup {
+      display: none;
+      /* script shows the right screen */
+      min-height: 90vh;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .setup-box {
+      width: 100%;
+      max-width: 440px;
+      background-color: #27244d;
+      border: 2px solid #3b3769;
+      border-radius: 22px;
+      padding: 28px 22px;
+      text-align: center;
+    }
+
+    .game-title {
+      font-size: 48px;
+      font-weight: 800;
+      line-height: 1;
+      color: #f4b41a;
+    }
+
+    .game-title span {
+      color: #e0356f;
+    }
+
+    .subtitle {
+      color: #a9a3d1;
+      margin: 12px 0 20px 0;
+    }
+
+    .setup-box input {
+      width: 100%;
+      padding: 13px 16px;
+      margin-bottom: 10px;
+      border: 2px solid #3b3769;
+      border-radius: 12px;
+      background-color: #1c1a38;
+      color: #fbf3df;
+      font-size: 16px;
+    }
+
+    .setup-box .code-input {
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 8px;
+      font-size: 22px;
+    }
+
+    .or-line {
+      color: #a9a3d1;
+      margin: 14px 0;
+    }
+
+    .status {
+      min-height: 24px;
+      margin-top: 12px;
+      color: #a9a3d1;
+    }
+
+    .status.error {
+      color: #ff7a9c;
+    }
+
+    /* lobby */
+    .room-code {
+      font-size: 64px;
+      font-weight: 800;
+      letter-spacing: 10px;
+      color: #f4b41a;
+      line-height: 1.1;
+    }
+
+    .slot {
+      background-color: #1c1a38;
+      border: 2px dashed #3b3769;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 8px;
+      color: #a9a3d1;
+    }
+
+    .slot.filled {
+      border-style: solid;
+      border-color: #17b3a3;
+      color: #fbf3df;
+    }
+
+    .slot.offline {
+      border-color: #e0356f;
+      color: #a9a3d1;
+    }
+
+    /* "connection hariyeche" message */
+    .notice {
+      display: none;
+      background-color: rgba(224, 53, 111, 0.18);
+      border: 1px solid #e0356f;
+      color: #ffb3c9;
+      border-radius: 12px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      font-size: 15px;
+    }
+
+    /* ===== Game screen ===== */
+    #game,
+    #l-game {
+      display: none;
+      /* script shows it */
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .top-bar h1 {
+      font-size: 22px;
+      margin: 0;
+      color: #f4b41a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* game logo */
+    .logo {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      display: block;
+    }
+
+    .logo.big {
+      width: 84px;
+      height: 84px;
+      margin: 0 auto 12px auto;
+    }
+
+    .top-btns {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .top-btns .btn {
+      padding: 8px 14px;
+      font-size: 15px;
+    }
+
+    /* player name boxes (2 per row on phone) */
+    #chips,
+    #l-chips {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .player-box {
+      background-color: #27244d;
+      border: 2px solid #3b3769;
+      border-radius: 14px;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .player-box.active {
+      border-color: #f4b41a;
+      background-color: #4c3e44;
+    }
+
+    .player-box.offline {
+      opacity: 0.5;
+    }
+
+    /* this player is talking right now */
+    .player-box.speaking {
+      border-color: #17b3a3;
+      box-shadow: 0 0 0 3px rgba(23, 179, 163, 0.45);
+    }
+
+    /* ===== Voice controls: status pill + round mic / speaker buttons ===== */
+    .voice-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 4px 4px 12px 4px;
+    }
+
+    .top-btns .voice-bar {
+      margin: 4px;
+    }
+
+    .voice-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 44px;
+      padding: 0 18px;
+      border-radius: 30px;
+      background-color: rgba(23, 179, 163, 0.14);
+      border: 2px solid rgba(23, 179, 163, 0.35);
+      color: #7ff0dc;
+      font-family: "Baloo Da 2", Arial, sans-serif;
+      font-weight: 700;
+      font-size: 17px;
+      white-space: nowrap;
+    }
+
+    .voice-pill i {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #7ff0dc;
+      box-shadow: 0 0 8px rgba(127, 240, 220, 0.8);
+    }
+
+    .voice-pill.off {
+      background-color: rgba(224, 53, 111, 0.14);
+      border-color: rgba(224, 53, 111, 0.4);
+      color: #ff8fb0;
+    }
+
+    .voice-pill.off i {
+      background-color: #ff8fb0;
+      box-shadow: none;
+    }
+
+    .icon-btn {
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background-color: rgba(255, 255, 255, 0.06);
+      border: 2px solid #3b3769;
+      color: #fbf3df;
+      transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .icon-btn svg {
+      width: 22px;
+      height: 22px;
+      display: block;
+    }
+
+    .icon-btn.on {
+      background-color: rgba(23, 179, 163, 0.16);
+      border-color: #17b3a3;
+      color: #7ff0dc;
+    }
+
+    .icon-btn.muted {
+      background-color: rgba(224, 53, 111, 0.16);
+      border-color: #e0356f;
+      color: #ff8fb0;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.94);
+    }
+
+    .player-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .player-score {
+      font-size: 22px;
+      font-weight: 800;
+      color: #f4b41a;
+    }
+
+    /* message box */
+    .stage {
+      background-color: #27244d;
+      border: 2px solid #3b3769;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 16px;
+      min-height: 110px;
+      text-align: center;
+    }
+
+    #msg,
+    #l-msg {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    #msg b,
+    #l-msg b {
+      color: #f4b41a;
+    }
+
+    /* ===== Cards ===== */
+    /* 2 cards per row on phone */
+    #board,
+    #l-board {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: none;
+      border: none;
+      padding: 0;
+      aspect-ratio: 3 / 4;
+      perspective: 900px;
+      /* needed for the 3D flip */
+      user-select: none;
+      /* stops text selection when holding */
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: manipulation;
+    }
+
+    /* the part that rotates */
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
+
+    /* when the card has class "flip", rotate it */
+    .card.flip .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    /* front and back sit on top of each other */
+    .card-front,
+    .card-back {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      backface-visibility: hidden;
+      /* hide the side facing away */
+      -webkit-backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .card-front {
+      background-color: #fbf3df;
+      color: #2a2552;
+      border: 3px solid #f4b41a;
+    }
+
+    /* my own card has a teal border so I can find it */
+    .card.mine .card-front {
+      border-color: #17b3a3;
+    }
+
+    /* the cards Police is allowed to pick */
+    .card.can-click {
+      cursor: pointer;
+    }
+
+    .card.can-click .card-front {
+      box-shadow: 0 0 0 4px #e0356f;
+    }
+
+    .card.can-click:hover {
+      transform: translateY(-4px);
+    }
+
+    .card-question {
+      font-size: 50px;
+      font-weight: 800;
+      color: #e0356f;
+    }
+
+    .card-owner {
+      font-weight: bold;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card-back {
+      transform: rotateY(180deg);
+      color: white;
+      border: 3px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .card-role {
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .card-points {
+      font-size: 38px;
+      font-weight: 800;
+    }
+
+    .card-name {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card-tag {
+      font-size: 13px;
+      background-color: rgba(0, 0, 0, 0.3);
+      border-radius: 20px;
+      padding: 2px 10px;
+    }
+
+    /* each role has its own colour */
+    .Babu .card-back {
+      background-color: #c98f0a;
+    }
+
+    .Police .card-back {
+      background-color: #0f8a7e;
+    }
+
+    .Dakat .card-back {
+      background-color: #e0356f;
+    }
+
+    .Chor .card-back {
+      background-color: #6f6aa8;
+    }
+
+    .card.lost .card-back {
+      filter: brightness(0.6);
+    }
+
+    /* ===== Score table ===== */
+    .table-wrap {
+      overflow-x: auto;
+      background-color: #27244d;
+      border: 2px solid #3b3769;
+      border-radius: 16px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 420px;
+      border-collapse: collapse;
+      text-align: center;
+    }
+
+    th,
+    td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #3b3769;
+    }
+
+    th {
+      color: #f4b41a;
+    }
+
+    tfoot td {
+      font-weight: bold;
+      color: #f4b41a;
+      border-bottom: none;
+    }
+
+    .empty {
+      color: #a9a3d1;
+    }
+
+    /* ===== Summary ===== */
+    #sumBox,
+    #l-sumBox {
+      display: none;
+      /* script shows it */
+      margin-top: 16px;
+      background-color: #27244d;
+      border: 2px solid #f4b41a;
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    #sumBox h2,
+    #l-sumBox h2 {
+      color: #f4b41a;
+      margin-top: 0;
+    }
+
+    .rank-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #3b3769;
+    }
+
+    .rank-row b {
+      color: #e0356f;
+    }
+
+    /* ===== Menu (first screen) ===== */
+    #menu {
+      display: none;
+    }
+
+    .menu-box {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 18px 0 40px 0;
+      text-align: center;
+    }
+
+    .mode-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      text-align: left;
+      background-color: #27244d;
+      border: 2px solid #3b3769;
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 12px;
+      color: #fbf3df;
+      cursor: pointer;
+      font-family: "Hind Siliguri", Arial, sans-serif;
+      transition: border-color 0.15s, transform 0.1s;
+    }
+
+    .mode-card:hover {
+      border-color: #f4b41a;
+    }
+
+    .mode-card:active {
+      transform: scale(0.98);
+    }
+
+    .mode-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .mode-icon svg {
+      width: 30px;
+      height: 30px;
+    }
+
+    .mode-icon.gold {
+      background-color: rgba(244, 180, 26, 0.16);
+      color: #f4b41a;
+    }
+
+    .mode-icon.teal {
+      background-color: rgba(23, 179, 163, 0.16);
+      color: #7ff0dc;
+    }
+
+    .mode-title {
+      font-family: "Baloo Da 2", Arial, sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: #f4b41a;
+      line-height: 1.1;
+    }
+
+    .mode-desc {
+      color: #a9a3d1;
+      font-size: 15px;
+      margin-top: 3px;
+    }
+
+    .mode-arrow {
+      margin-left: auto;
+      color: #3b3769;
+      font-size: 26px;
+      font-family: "Baloo Da 2", Arial, sans-serif;
+    }
+
+    .mode-card:hover .mode-arrow {
+      color: #f4b41a;
+    }
+
+    /* ===== How to play ===== */
+    .howto {
+      background-color: #27244d;
+      border: 2px solid #3b3769;
+      border-radius: 20px;
+      margin-top: 12px;
+      text-align: left;
+    }
+
+    .howto[open] {
+      border-color: #f4b41a;
+    }
+
+    .howto summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      cursor: pointer;
+      list-style: none;
+      font-family: "Baloo Da 2", Arial, sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: #f4b41a;
+      line-height: 1.1;
+    }
+
+    .howto summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .howto summary::after {
+      content: "\203A";
+      font-size: 26px;
+      color: #3b3769;
+      transform: rotate(90deg);
+      transition: transform 0.2s;
+    }
+
+    .howto[open] summary::after {
+      transform: rotate(-90deg);
+      color: #f4b41a;
+    }
+
+    .howto-body {
+      padding: 0 18px 20px 18px;
+    }
+
+    .howto h2 {
+      font-family: "Baloo Da 2", Arial, sans-serif;
+      font-size: 26px;
+      color: #f4b41a;
+      margin: 0 0 6px 0;
+    }
+
+    .howto h3 {
+      font-family: "Baloo Da 2", Arial, sans-serif;
+      font-size: 18px;
+      color: #e0356f;
+      margin: 20px 0 8px 0;
+    }
+
+    .howto p {
+      margin: 0 0 10px 0;
+      color: #d9d3f2;
+      line-height: 1.55;
+    }
+
+    .howto b {
+      color: #f4b41a;
+    }
+
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin: 12px 0 4px 0;
+    }
+
+    .role-chip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 14px;
+      padding: 10px 14px;
+      color: white;
+      font-family: "Baloo Da 2", Arial, sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .role-chip b {
+      color: white;
+      font-size: 22px;
+    }
+
+    .rc-babu {
+      background-color: #c98f0a;
+    }
+
+    .rc-police {
+      background-color: #0f8a7e;
+    }
+
+    .rc-dakat {
+      background-color: #e0356f;
+    }
+
+    .rc-chor {
+      background-color: #6f6aa8;
+    }
+
+    .steps {
+      list-style: none;
+      counter-reset: step;
+      padding: 0;
+      margin: 0;
+    }
+
+    .steps li {
+      counter-increment: step;
+      position: relative;
+      padding: 0 0 12px 44px;
+      color: #d9d3f2;
+      line-height: 1.55;
+    }
+
+    .steps li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: #f4b41a;
+      color: #2a2552;
+      font-family: "Baloo Da 2", Arial, sans-serif;
+      font-weight: 800;
+      text-align: center;
+      line-height: 30px;
+    }
+
+    .tip-box {
+      background-color: #1c1a38;
+      border: 2px dashed #3b3769;
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-top: 10px;
+      color: #d9d3f2;
+      line-height: 1.55;
+    }
+
+    .tip-box b {
+      color: #7ff0dc;
+    }
+
+    .card.disabled {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .back-link {
+      margin-top: 6px;
+    }
+
+    /* ===== Big screens: 4 per row ===== */
+    @media (min-width: 700px) {
+      #chips,
+    #l-chips {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      #board,
+    #l-board {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+      }
+
+      .game-title {
+        font-size: 56px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- game logo: police cap + bandit mask, drawn in the theme colours -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="logoSym" viewBox="0 0 100 100">
+      <rect x="1" y="1" width="98" height="98" rx="22" fill="#27244d" stroke="#3b3769" stroke-width="1.2"/>
+      <path d="M50 12 L82 24 V52 C82 72 68 84 50 90 C32 84 18 72 18 52 V24 Z" fill="#f4b41a" stroke="#e0356f" stroke-width="3" stroke-linejoin="round"/><polygon points="0,-9 2.12,-2.91 8.56,-2.78 3.42,1.11 5.29,7.28 0,3.6 -5.29,7.28 -3.42,1.11 -8.56,-2.78 -2.12,-2.91" fill="#27244d" transform="translate(50,35) scale(1.1)"/><rect x="28" y="52" width="44" height="17" rx="8.5" fill="#27244d"/><circle cx="40" cy="60.5" r="3.6" fill="#17b3a3"/><circle cx="60" cy="60.5" r="3.6" fill="#17b3a3"/>
+    </symbol>
+  </svg>
+  <!-- other players' voices play here (hidden) -->
+  <div id="audioBox" style="position:absolute;width:0;height:0;overflow:hidden"></div>
+  <div id="audioHint" style="display:none;position:fixed;left:12px;right:12px;bottom:12px;z-index:50;cursor:pointer;text-align:center;background:#e0356f;color:#fff;border-radius:14px;padding:12px;font-weight:bold">🔊 Onno der kotha shunte ekbar ekhane tap koro</div>
+  <div class="container">
+
+    <!-- Screen 0: MENU (first screen) -->
+    <section id="menu">
+      <div class="menu-box">
+        <svg class="logo big"><use href="#logoSym"/></svg>
+        <div class="game-title">Chor Police<br><span>Babu Dakat</span></div>
+        <p class="subtitle">Babu hukum dey, Police chhute, Chor-Dakat mukh lukay. Kemon kore khelbe?</p>
+
+        <button class="mode-card" id="modeLocal">
+          <span class="mode-icon gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18h2"/></svg></span>
+          <span>
+            <div class="mode-title">Play Locally</div>
+            <div class="mode-desc">Ek-i phone e 4 jon mile khelo, phone hat bodol kore.</div>
+          </span>
+          <span class="mode-arrow">&rsaquo;</span>
+        </button>
+
+        <button class="mode-card" id="modeOnline">
+          <span class="mode-icon teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2a5 5 0 0 1 5 4.8"/></svg></span>
+          <span>
+            <div class="mode-title">Multiplayer</div>
+            <div class="mode-desc">Room banao, code pathao, bondhura nijer phone theke join korbe. Voice chat o ache.</div>
+          </span>
+          <span class="mode-arrow">&rsaquo;</span>
+        </button>
+
+        <details class="howto">
+          <summary>How to play</summary>
+          <div class="howto-body">
+          <p>Game e <b>4 jon</b> player, ar <b>4 ta card</b>. Protita card e ekta role ar point ache:</p>
+          <div class="role-grid">
+            <div class="role-chip rc-babu"><span>Babu</span><b>100</b></div>
+            <div class="role-chip rc-police"><span>Police</span><b>80</b></div>
+            <div class="role-chip rc-dakat"><span>Dakat</span><b>60</b></div>
+            <div class="role-chip rc-chor"><span>Chor</span><b>40</b></div>
+          </div>
+
+          <h3>Ek round er niyom</h3>
+          <ol class="steps">
+            <li>Sobai ekta kore card pay. Nijer card ta <b>chepe dhore</b> dekho, chere dile lukiye jabe. Onno keu jeno na dekhe!</li>
+            <li>Sobai dekhe nile <b>Babu</b> ar <b>Police</b> er card sobar shamne khule jay. Dakat ar Chor ke, ta shudhu tara nijera jane.</li>
+            <li>Babu Police ke <b>hukum</b> dey: "Chor khojo" ba "Dakat khojo".</li>
+            <li>Police baki <b>2 ta lukano card</b> er moddhe ekta chape. Thik hole: dhora pore gelo, oi Chor/Dakat pay <b>0</b>. Bhul hole: <b>Police</b> pay 0, ar Chor/Dakat nijer point rakhe.</li>
+            <li>Baki sobai nijer role er point pay. Score table e round er point jog hote thake. <b>Summary</b> e dekho kar rank Raja, Minister, Proja, ar Slave.</li>
+          </ol>
+
+          <h3>Mode onujayi</h3>
+          <div class="tip-box">
+            <b>Play Locally:</b> naam likhe Start dao. Protita player card dekhe <b>"Done, pass the phone"</b> chepe phone porer jon ke dibe. Card dekhar shomoy onno keu jeno na dekhe.
+          </div>
+          <div class="tip-box">
+            <b>Multiplayer:</b> ekjon <b>Room banao</b> chape, 4 okkhor er code bondhuder pathay. Tara code diye join kore. 4 jon na ashle baki seat e <b>bot</b> khelbe. Net chole gele seat ta thake, ferot ashle abar game e dhukte pare.
+          </div>
+          <p style="margin-top:12px">Tip: Chor ba Dakat hole <b>poker face</b> rakho, ar Police hole mukh dekhe bujhe nao!</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- LOCAL screen 1: player names -->
+    <section id="l-setup">
+      <div class="setup-box">
+        <svg class="logo big"><use href="#logoSym"/></svg>
+        <div class="game-title">Chor Police<br><span>Babu Dakat</span></div>
+        <p class="subtitle">Same device e khelo. Prottek player er naam likho.</p>
+        <input placeholder="Player 1" maxlength="14">
+        <input placeholder="Player 2" maxlength="14">
+        <input placeholder="Player 3" maxlength="14">
+        <input placeholder="Player 4" maxlength="14">
+        <button class="btn" id="l-startBtn">Start game</button>
+        <button class="btn btn-outline back-link" id="lBackBtn">&larr; Menu</button>
+      </div>
+    </section>
+
+    <!-- LOCAL screen 2: the game -->
+    <section id="l-game">
+      <div class="top-bar">
+        <h1><svg class="logo"><use href="#logoSym"/></svg>Chor Police Babu Dakat</h1>
+        <div class="top-btns">
+          <button class="btn btn-outline" id="l-sumBtn">Summary</button>
+          <button class="btn btn-outline" id="lMenuBtn">Menu</button>
+        </div>
+      </div>
+
+      <div id="l-chips"></div>
+
+      <div class="stage">
+        <div id="l-msg"></div>
+        <div id="l-acts"></div>
+      </div>
+
+      <div id="l-board"></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead id="l-thead"></thead>
+          <tbody id="l-tbody"></tbody>
+          <tfoot id="l-tfoot"></tfoot>
+        </table>
+      </div>
+
+      <div id="l-sumBox"></div>
+    </section>
+
+    <!-- Online screen 1: your name, create a room or join one -->
+    <section id="home">
+      <div class="setup-box">
+        <svg class="logo big"><use href="#logoSym"/></svg>
+        <div class="game-title">Chor Police<br><span>Babu Dakat</span></div>
+        <p class="subtitle">Babu hukum dey, Police chhute, Chor-Dakat mukh lukay. Aaj kar mukh dhora porbe?</p>
+
+        <input id="nameInput" placeholder="Tomar naam" maxlength="14">
+        <button class="btn" id="createBtn">Room banao</button>
+
+        <div class="or-line">ba, bondhur room e dhuko</div>
+
+        <input id="codeInput" class="code-input" placeholder="CODE" maxlength="4">
+        <button class="btn btn-teal" id="joinBtn">Room e join koro</button>
+
+        <div class="status" id="homeStatus"></div>
+        <button class="btn btn-pink" id="cancelResumeBtn" style="display:none">Purono game chhere notun shuru koro</button>
+        <div><button class="btn btn-outline back-link" id="homeBackBtn">&larr; Menu</button></div>
+      </div>
+    </section>
+
+    <!-- Screen 2: waiting room -->
+    <section id="lobby">
+      <div class="setup-box">
+        <div class="subtitle" style="margin-top:0">Room code</div>
+        <div class="room-code" id="lobbyCode">----</div>
+        <p class="subtitle">Ei code ta bondhuder pathao. Jotojon ashbe tara dhukle host game shuru korbe, baki seat e bot khelbe.</p>
+        <div class="notice" id="lobbyNotice"></div>
+        <div id="slots"></div>
+        <div id="lobbyActs"></div>
+        <div class="voice-bar">
+          <span class="voice-pill off" id="voicePill2"><i></i><b>Voice off</b></span>
+          <button class="icon-btn muted" id="voiceBtn2" aria-label="Mic"></button>
+          <button class="icon-btn on" id="spkBtn2" aria-label="Speaker"></button>
+        </div>
+        <button class="btn btn-outline" id="leaveBtn2">Exit</button>
+      </div>
+    </section>
+
+    <!-- Screen 3: the game -->
+    <section id="game">
+      <div class="top-bar">
+        <h1><svg class="logo"><use href="#logoSym"/></svg>Chor Police Babu Dakat</h1>
+        <div class="top-btns">
+          <div class="voice-bar">
+            <span class="voice-pill off" id="voicePill"><i></i><b>Voice off</b></span>
+            <button class="icon-btn muted" id="voiceBtn" aria-label="Mic"></button>
+            <button class="icon-btn on" id="spkBtn" aria-label="Speaker"></button>
+          </div>
+          <button class="btn btn-outline" id="sumBtn">Summary</button>
+          <button class="btn btn-outline" id="leaveBtn">Exit</button>
+        </div>
+      </div>
+
+      <div id="chips"></div>
+
+      <div class="stage">
+        <div class="notice" id="notice"></div>
+        <div id="msg"></div>
+        <div id="acts"></div>
+      </div>
+
+      <div id="board"></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
+          <tfoot id="tfoot"></tfoot>
+        </table>
+      </div>
+
+      <div id="sumBox"></div>
+    </section>
+
+  </div>
+  <script>
+    // =====================================================
+    //  HOW THIS WORKS
+    //  - One phone is the HOST. The host keeps the real game
+    //    data (who has which role) and does all the checking.
+    //  - The other 3 phones are GUESTS. They send their
+    //    actions (ready, order, guess) to the host.
+    //  - After every action the host sends each player ONLY
+    //    what that player is allowed to see. So nobody can
+    //    find out another player's card by cheating.
+    //
+    //  STAY-IN-GAME SYSTEM (new)
+    //  - Every phone has a secret TOKEN saved in the browser.
+    //    The host remembers which token owns which seat, so if
+    //    you get disconnected / refresh, you get YOUR seat back.
+    //  - The host saves the whole game in the browser after every
+    //    action. If the host refreshes, the game comes back.
+    //  - If a phone loses connection, the game does NOT stop and
+    //    nobody is kicked. It just shows "reconnecting..." and the
+    //    phone keeps trying to connect again by itself.
+    //  - Heartbeat (ping every 4 sec) finds dead connections fast.
+    //  - Wake Lock keeps the screen on so the phone doesn't sleep.
+    // =====================================================
+
+    // ===== Game data =====
+    var points = { Babu: 100, Police: 80, Dakat: 60, Chor: 40 };
+    var roleNames = ["Babu", "Police", "Dakat", "Chor"];
+    var ranks = ["Raja", "Minister", "Proja", "Slave"];
+
+    // TURN server: mobile data / alada WiFi er jonno
+    var TURN_USER = "b039196df2d5fd82d202f888";
+    var TURN_PASS = "rjYgkvTWZLbY1TbK";
+
+    var iceConfig = {
+      config: {
+        iceServers: [
+          { urls: "stun:stun.relay.metered.ca:80" },
+          { urls: "turn:global.relay.metered.ca:80", username: TURN_USER, credential: TURN_PASS },
+          { urls: "turn:global.relay.metered.ca:80?transport=tcp", username: TURN_USER, credential: TURN_PASS },
+          { urls: "turn:global.relay.metered.ca:443", username: TURN_USER, credential: TURN_PASS },
+          { urls: "turns:global.relay.metered.ca:443?transport=tcp", username: TURN_USER, credential: TURN_PASS }
+        ]
+      }
+    };
+
+    // ===== Connection data =====
+    var peer = null;                            // my PeerJS connection
+    var isHost = false;                         // true on the phone that made the room
+    var roomCode = "";                          // 4 letter room code
+    var myName = "";                            // my name
+    var hostConn = null;                        // (guest) connection to the host
+    var guestConns = [null, null, null, null];  // (host) connection of each player, 0 = host himself
+    var guestConnected = false;                 // (guest) did we reach the host at least once?
+    var game = null;                            // (host only) the real game data
+
+    // ===== Stay-in-game data =====
+    var SESSION_KEY = "cpbd-session";
+    var TOKEN_KEY = "cpbd-token";
+    var SESSION_MAX_AGE = 3 * 60 * 60 * 1000;   // forget old games after 3 hours
+    var LOBBY_SEAT_WAIT = 45000;                // lobby: free a seat if player is gone for 45 sec
+    var wakeLock = null;                        // keeps the screen on
+    var leaving = false;                        // true when player pressed "Ber"
+    var awayTimers = [null, null, null, null];  // (host) lobby timers
+    var lastMsgTime = Date.now();               // (guest) when did the host last talk to me
+    var connGen = 0;                            // (guest) id of the current connect attempt
+    var retryTimer = null;                      // (guest) timer for the next attempt
+    var retryCount = 0;                         // (guest) failed attempts in a row
+    var resuming = false;                       // (guest) true when we are coming back after refresh
+    var stopRetry = false;                      // (guest) true = stop trying
+    var localNotice = "";                       // my own "reconnecting" message
+
+    // ===== Voice chat data =====
+    var micStream = null;                       // my real microphone (after I press Mic)
+    var micOn = false;                          // is my mic open and unmuted?
+    var silentStream = null;                    // silent sound, used until my mic is on
+    var voiceCalls = {};                        // voice call with each phone (key = peer id)
+    var speakerOn = true;                       // do I hear the others? (only on my phone)
+    var speaking = [false, false, false, false];// who is talking right now (by seat)
+    var audioCtx = null;                        // makes the silence + detects who is talking
+    var analysers = {};                         // "me" or peer id -> volume meter
+
+    // ===== Screen data =====
+    var lastView = null;     // last thing the host sent me
+    var myPeeking = false;   // am I holding my card right now?
+    var peekedRound = -1;    // which round did I already peek in
+    var boardBuilt = false;  // are the 4 cards created?
+    var shownRound = -1;     // which round is on screen
+
+    // ===== Small helper functions =====
+    function getEl(id) {
+      return document.getElementById(id);
+    }
+
+    // stops names like <b> from breaking the page
+    function safe(text) {
+      text = String(text);
+      text = text.replace(/&/g, "&amp;");
+      text = text.replace(/</g, "&lt;");
+      text = text.replace(/>/g, "&gt;");
+      return text;
+    }
+
+    function bold(text) {
+      return "<b>" + safe(text) + "</b>";
+    }
+
+    // mixes the list in random order
+    function shuffle(list) {
+      var result = list.slice();
+      for (var i = result.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = result[i];
+        result[i] = result[j];
+        result[j] = temp;
+      }
+      return result;
+    }
+
+    // show one screen, hide the others
+    function showScreen(name) {
+      var all = ["menu", "home", "lobby", "game", "l-setup", "l-game"];
+      for (var i = 0; i < all.length; i++) {
+        getEl(all[i]).style.display = "none";
+      }
+      if (name == "game" || name == "l-game" || name == "menu") {
+        getEl(name).style.display = "block";
+      } else {
+        getEl(name).style.display = "flex";
+      }
+    }
+
+    function setStatus(text, isError) {
+      var el = getEl("homeStatus");
+      el.textContent = text;
+      if (isError) {
+        el.className = "status error";
+      } else {
+        el.className = "status";
+      }
+    }
+
+    function showError(text) {
+      showCancel(false);
+      showScreen("home");
+      setStatus(text, true);
+      getEl("createBtn").disabled = false;
+      getEl("joinBtn").disabled = false;
+    }
+
+    function getName() {
+      var name = getEl("nameInput").value.trim();
+      if (name == "") {
+        name = "Player";
+      }
+      return name.slice(0, 14);
+    }
+
+    // =====================================================
+    //  PART 0: STAY IN THE GAME (save, resume, keep alive)
+    // =====================================================
+
+    // secret id of this phone (stays the same after refresh)
+    function getToken() {
+      var token = "";
+      try {
+        token = localStorage.getItem(TOKEN_KEY) || "";
+      } catch (e) { }
+      if (token == "") {
+        token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        try {
+          localStorage.setItem(TOKEN_KEY, token);
+        } catch (e) { }
+      }
+      return token;
+    }
+
+    // save what we need to come back after refresh
+    function saveSession() {
+      if (leaving || roomCode == "") {
+        return;
+      }
+      try {
+        localStorage.setItem(SESSION_KEY, JSON.stringify({
+          isHost: isHost,
+          roomCode: roomCode,
+          myName: myName,
+          game: isHost ? game : null,
+          time: Date.now()
+        }));
+      } catch (e) { }
+    }
+
+    function clearSession() {
+      try {
+        localStorage.removeItem(SESSION_KEY);
+      } catch (e) { }
+    }
+
+    // keep the screen on so the phone doesn't go to sleep
+    function keepAwake() {
+      try {
+        if (wakeLock || !("wakeLock" in navigator) || document.visibilityState != "visible") {
+          return;
+        }
+        navigator.wakeLock.request("screen").then(function (lock) {
+          wakeLock = lock;
+          lock.addEventListener("release", function () {
+            wakeLock = null;
+          });
+        }).catch(function () { });
+      } catch (e) { }
+    }
+
+    // my own message like "reconnecting..." (shown above the normal message)
+    function setLocalNotice(text) {
+      localNotice = text;
+      if (text != "") {
+        setStatus(text, false);
+      }
+      updateNotice();
+    }
+
+    function updateNotice() {
+      var text = localNotice;
+      if (text == "" && lastView && lastView.notice) {
+        text = lastView.notice;
+      }
+      var ids = ["notice", "lobbyNotice"];
+      for (var i = 0; i < ids.length; i++) {
+        var el = getEl(ids[i]);
+        el.textContent = text;
+        el.style.display = (text == "") ? "none" : "block";
+      }
+    }
+
+    // show / hide the "start fresh" button on the home screen
+    function showCancel(on) {
+      getEl("cancelResumeBtn").style.display = on ? "inline-block" : "none";
+    }
+
+    // throw away the old game / connection completely and start clean
+    function resetConnection() {
+      stopRetry = true;
+      clearTimeout(retryTimer);
+      connGen++;   // all old connect attempts are ignored from now on
+      clearSession();
+      for (var i = 0; i < 4; i++) {
+        clearTimeout(awayTimers[i]);
+        awayTimers[i] = null;
+        guestConns[i] = null;
+      }
+      closeAllCalls();
+      var old = peer;
+      peer = null;
+      hostConn = null;
+      if (old) {
+        old.noReopen = true;
+        try { old.destroy(); } catch (e) { }
+      }
+      game = null;
+      lastView = null;
+      roomCode = "";
+      guestConnected = false;
+      resuming = false;
+      localNotice = "";
+      stopRetry = false;
+      showCancel(false);
+    }
+
+    // after refresh: go back to the old room
+    function resumeSession() {
+      var saved = null;
+      try {
+        saved = JSON.parse(localStorage.getItem(SESSION_KEY));
+      } catch (e) { }
+      if (!saved || !saved.roomCode || Date.now() - saved.time > SESSION_MAX_AGE) {
+        clearSession();
+        return false;
+      }
+      if (typeof Peer == "undefined") {
+        return false;
+      }
+
+      myName = saved.myName || "Player";
+      roomCode = saved.roomCode;
+      keepAwake();
+      showScreen("home");
+      setStatus("Game e ferot ashchi...", false);
+      showCancel(true); // player can always give up and start fresh
+
+      if (saved.isHost) {
+        if (!saved.game) {
+          return false;
+        }
+        isHost = true;
+        game = saved.game;
+        if (!game.tokens) game.tokens = ["", "", "", ""];
+        game.away = [false, false, false, false];
+        openRoom(0, roomCode);
+      } else {
+        isHost = false;
+        resuming = true;
+        stopRetry = false;
+        retryCount = 0;
+        connectToHost();
+      }
+      return true;
+    }
+
+    // check the connection and fix it if it is broken
+    function checkConnection() {
+      if (isHost) {
+        if (!game) return;
+        if (!peer || peer.destroyed) {
+          openRoom(0, roomCode);
+        } else if (peer.disconnected) {
+          try { peer.reconnect(); } catch (e) { }
+        }
+      } else if (roomCode != "" && !stopRetry) {
+        if (!hostConn || !hostConn.open) {
+          connectToHost();
+        } else {
+          // check quickly if the host is really alive
+          lastMsgTime = Math.min(lastMsgTime, Date.now() - 14000);
+        }
+      }
+    }
+
+    // player pressed "Ber": leave for real
+    function leaveGame() {
+      if (!confirm("Sotti game theke exit korbe?")) {
+        return;
+      }
+      leaving = true;
+      stopRetry = true;
+      clearSession();
+      if (micStream) {
+        micStream.getTracks().forEach(function (t) { t.stop(); });
+      }
+      closeAllCalls();
+      try { if (peer) peer.destroy(); } catch (e) { }
+      location.reload();
+    }
+
+    // phone came back (screen on / app opened again)
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState == "visible") {
+        keepAwake();
+        if (isHost) {
+          // give everybody a fresh start, our timers were sleeping
+          for (var i = 1; i < 4; i++) {
+            if (guestConns[i]) guestConns[i].lastSeen = Date.now();
+          }
+        }
+        checkConnection();
+      }
+    });
+    window.addEventListener("online", checkConnection);
+    window.addEventListener("pageshow", function (e) {
+      if (e.persisted) checkConnection();
+    });
+    // host closes the page: free the room code fast so a refresh can take it back
+    window.addEventListener("pagehide", function (e) {
+      if (isHost && peer && !e.persisted) {
+        try { peer.destroy(); } catch (err) { }
+      }
+    });
+    // some phones only allow wake lock after a tap
+    document.addEventListener("click", keepAwake);
+
+    // heartbeat: ping every 4 sec, find dead connections
+    setInterval(function () {
+      if (isHost) {
+        if (!game) return;
+        var now = Date.now();
+        for (var i = 1; i < 4; i++) {
+          var conn = guestConns[i];
+          if (!conn) continue;
+          if (conn.open) {
+            try { conn.send({ type: "ping" }); } catch (e) { }
+          }
+          if (now - conn.lastSeen > 25000) {
+            try { conn.close(); } catch (e) { }
+            guestLeft(conn);
+          }
+        }
+      } else if (roomCode != "" && !stopRetry && hostConn && hostConn.open) {
+        try { hostConn.send({ type: "ping" }); } catch (e) { }
+        if (Date.now() - lastMsgTime > 20000) {
+          connectToHost(); // host is silent, try again
+        }
+      }
+    }, 4000);
+
+    // =====================================================
+    //  PART 1: CREATE ROOM (host)
+    // =====================================================
+    function makeCode() {
+      var letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+      var code = "";
+      for (var i = 0; i < 4; i++) {
+        code += letters.charAt(Math.floor(Math.random() * letters.length));
+      }
+      return code;
+    }
+
+    function createRoom() {
+      if (typeof Peer == "undefined") {
+        showError("PeerJS load hoyni. Internet check kore page reload koro.");
+        return;
+      }
+      resetConnection(); // forget any old game first
+      myName = getName();
+      isHost = true;
+      keepAwake();
+      getEl("createBtn").disabled = true;
+      getEl("joinBtn").disabled = true;
+      setStatus("Room toiri hocche...", false);
+      openRoom(0, "");
+    }
+
+    // opens a room. fixedCode = "" means pick a random code,
+    // otherwise we take back our old room (after refresh)
+    function openRoom(tries, fixedCode) {
+      if (peer) {
+        try { peer.destroy(); } catch (e) { }
+      }
+      roomCode = fixedCode || makeCode();
+      var p = new Peer("cpbd-" + roomCode, iceConfig);
+      peer = p;
+      var opened = false;
+
+      p.on("open", function () {
+        if (peer !== p) return;
+        opened = true;
+        if (!game) {
+          newGame();
+        }
+        // everybody without a live connection is "away" until they come back
+        for (var i = 1; i < 4; i++) {
+          if (game.names[i] != "" && !(guestConns[i] && guestConns[i].open)) {
+            markAway(i);
+          }
+        }
+        sendAll(); // shows the lobby / game
+      });
+
+      p.on("connection", function (conn) {
+        if (peer !== p) return;
+        onGuestConnect(conn);
+      });
+
+      p.on("call", onIncomingCall); // someone calls me for voice chat
+
+      // lost the PeerJS server for a moment: connect again (players stay connected)
+      p.on("disconnected", function () {
+        setTimeout(function () {
+          if (peer === p && p.disconnected && !p.destroyed) {
+            try { p.reconnect(); } catch (e) { }
+          }
+        }, 1000);
+      });
+
+      // peer was closed completely: open the same room again
+      p.on("close", function () {
+        if (peer === p && game && !p.noReopen && !leaving) {
+          setTimeout(function () {
+            if (peer === p) openRoom(0, roomCode);
+          }, 2000);
+        }
+      });
+
+      p.on("error", function (err) {
+        if (peer !== p) return;
+        if (err.type == "unavailable-id" && tries < 15) {
+          // code is taken (or our old one has not expired yet): try again
+          p.noReopen = true;
+          try { p.destroy(); } catch (e) { }
+          setTimeout(function () {
+            openRoom(tries + 1, fixedCode);
+          }, fixedCode ? 3000 : 0);
+        } else if (err.type == "network" || err.type == "server-error" ||
+          err.type == "socket-error" || err.type == "socket-closed") {
+          setTimeout(function () {
+            if (peer === p && p.disconnected && !p.destroyed) {
+              try { p.reconnect(); } catch (e) { }
+            }
+          }, 3000);
+        } else if (!opened) {
+          showError("Room banano gelo na: " + err.type);
+        }
+        // after the room is open, other small errors are ignored so the game keeps going
+      });
+    }
+
+    // the real game data lives here (host only)
+    function newGame() {
+      game = {
+        names: ["", "", "", ""],      // player names, "" = empty seat
+        tokens: ["", "", "", ""],     // secret id of each player (to give the seat back)
+        away: [false, false, false, false], // true = player lost connection
+        totals: [0, 0, 0, 0],         // total score of each player
+        rows: [],                     // one entry per finished round
+        roles: [],                    // roles[i] = role of player i
+        phase: "lobby",               // lobby, deal, order, guess, done
+        ready: [false, false, false, false],
+        bots: [false, false, false, false], // true = computer player (fills empty seats)
+        target: "",                   // "Chor" or "Dakat" (Babu's order)
+        result: null,                 // result of the finished round
+        round: 0
+      };
+      game.names[0] = myName;
+    }
+
+    // a guest phone connected to us
+    function onGuestConnect(conn) {
+      conn.playerIndex = -1;
+      conn.lastSeen = Date.now();
+
+      conn.on("data", function (msg) {
+        conn.lastSeen = Date.now();
+        if (!msg || typeof msg != "object" || msg.type == "ping") {
+          return;
+        }
+        if (msg.type == "join" && conn.playerIndex == -1) {
+          joinGuest(conn, msg);
+          return;
+        }
+        if (conn.playerIndex > 0) {
+          handleMessage(conn.playerIndex, msg);
+        }
+      });
+
+      conn.on("close", function () {
+        guestLeft(conn);
+      });
+    }
+
+    function rejectGuest(conn, reason) {
+      try {
+        conn.send({ type: "rejected", reason: reason });
+      } catch (e) { }
+      setTimeout(function () {
+        try { conn.close(); } catch (e) { }
+      }, 500);
+    }
+
+    // a player lost connection: keep his seat, just mark him as away
+    function markAway(i) {
+      guestConns[i] = null;
+      game.away[i] = true;
+      clearTimeout(awayTimers[i]);
+      if (game.phase == "lobby") {
+        // in the lobby the seat is freed if he does not come back
+        awayTimers[i] = setTimeout(function () {
+          if (game && game.away[i] && game.phase == "lobby") {
+            game.names[i] = "";
+            game.tokens[i] = "";
+            game.away[i] = false;
+            sendAll();
+          }
+        }, LOBBY_SEAT_WAIT);
+      }
+    }
+
+    // give the guest a seat (his old seat, or a free one)
+    function joinGuest(conn, msg) {
+      var token = String(msg.token || "");
+      var seat = -1;
+      var i;
+
+      // 1) old player coming back: give his seat back (even in the middle of the game)
+      for (i = 1; i < 4; i++) {
+        if (token != "" && game.tokens[i] == token && game.names[i] != "") {
+          seat = i;
+        }
+      }
+      if (seat != -1) {
+        var old = guestConns[seat];
+        guestConns[seat] = conn;
+        conn.playerIndex = seat;
+        game.away[seat] = false;
+        clearTimeout(awayTimers[seat]);
+        if (old && old !== conn) {
+          try { old.close(); } catch (e) { }
+        }
+        sendAll();
+        return;
+      }
+
+      // 2) new player: only allowed in the lobby
+      if (game.phase != "lobby") {
+        rejectGuest(conn, "Game already shuru hoye geche.");
+        return;
+      }
+      for (i = 1; i < 4; i++) {
+        if (game.names[i] == "" && seat == -1) {
+          seat = i;
+        }
+      }
+      if (seat == -1) {
+        rejectGuest(conn, "Room full, 4 jon already ache.");
+        return;
+      }
+      var name = String(msg.name || "").trim().slice(0, 14);
+      if (name == "") {
+        name = "Player " + (seat + 1);
+      }
+      conn.playerIndex = seat;
+      guestConns[seat] = conn;
+      game.names[seat] = name;
+      game.tokens[seat] = token;
+      game.away[seat] = false;
+      sendAll();
+    }
+
+    function guestLeft(conn) {
+      var i = conn.playerIndex;
+      if (i < 1 || guestConns[i] !== conn) {
+        return;
+      }
+      markAway(i); // nobody is kicked, the seat waits for him
+      sendAll();
+    }
+
+    // =====================================================
+    //  PART 2: JOIN ROOM (guest)
+    // =====================================================
+    function joinRoom() {
+      var code = getEl("codeInput").value.trim().toUpperCase();
+      if (code.length != 4) {
+        setStatus("4 okkhor er room code likho.", true);
+        return;
+      }
+      if (typeof Peer == "undefined") {
+        showError("PeerJS load hoyni. Internet check kore page reload koro.");
+        return;
+      }
+      resetConnection(); // forget any old game first
+      myName = getName();
+      isHost = false;
+      roomCode = code;
+      guestConnected = false;
+      resuming = false;
+      stopRetry = false;
+      retryCount = 0;
+      keepAwake();
+      getEl("createBtn").disabled = true;
+      getEl("joinBtn").disabled = true;
+      setStatus("Connect hocche...", false);
+      connectToHost();
+    }
+
+    // connects to the host. Used for the first join AND for every reconnect.
+    function connectToHost() {
+      if (stopRetry || isHost) {
+        return;
+      }
+      clearTimeout(retryTimer);
+      var gen = ++connGen;   // old attempts are ignored from now on
+      var failed = false;
+
+      if (hostConn) {
+        try { hostConn.close(); } catch (e) { }
+      }
+      if (peer) {
+        try { peer.destroy(); } catch (e) { }
+      }
+      hostConn = null;
+
+      function fail() {
+        if (gen !== connGen || failed) return;
+        failed = true;
+        scheduleRetry();
+      }
+
+      var p = new Peer(undefined, iceConfig);
+      peer = p;
+      var timer = setTimeout(fail, 15000); // this attempt takes too long
+
+      p.on("call", onIncomingCall); // someone calls me for voice chat
+
+      p.on("open", function () {
+        if (gen !== connGen) return;
+        var conn = p.connect("cpbd-" + roomCode, { reliable: true });
+        hostConn = conn;
+
+        conn.on("open", function () {
+          if (gen !== connGen) return;
+          clearTimeout(timer);
+          retryCount = 0;
+          guestConnected = true;
+          lastMsgTime = Date.now();
+          conn.send({ type: "join", name: myName, token: getToken() });
+        });
+
+        conn.on("data", function (msg) {
+          if (gen !== connGen) return;
+          lastMsgTime = Date.now();
+          onHostMessage(msg);
+        });
+
+        conn.on("close", function () {
+          if (gen !== connGen) return;
+          clearTimeout(timer);
+          fail();
+        });
+
+        conn.on("error", function () {
+          if (gen !== connGen) return;
+          fail();
+        });
+      });
+
+      p.on("error", function (err) {
+        if (gen !== connGen) return;
+        // small PeerJS server problems don't matter if we are already connected
+        if (hostConn && hostConn.open) return;
+        clearTimeout(timer);
+        if (err.type == "peer-unavailable" && !guestConnected && !resuming) {
+          giveUp("Ei code e kono room nai.");
+          return;
+        }
+        fail();
+      });
+    }
+
+    // try again after a short wait
+    function scheduleRetry() {
+      if (isHost || stopRetry) {
+        return;
+      }
+      retryCount++;
+      var patient = guestConnected || resuming;   // coming back: try for ~5 minutes
+      // after refresh (old room may be gone) try ~1.5 min, in a live game ~5 min
+      var limit = guestConnected ? 60 : (resuming ? 20 : 3);
+      if (retryCount > limit) {
+        giveUp("Host er sathe connect hocche na. Code ar internet check koro.");
+        return;
+      }
+      if (patient) {
+        setLocalNotice("Connection hariyeche, ferot connect hocche...");
+      }
+      clearTimeout(retryTimer);
+      retryTimer = setTimeout(connectToHost, Math.min(1000 * retryCount, 5000));
+    }
+
+    // stop trying and go back to the home screen
+    function giveUp(text) {
+      stopRetry = true;
+      clearTimeout(retryTimer);
+      clearSession();
+      try { if (peer) peer.destroy(); } catch (e) { }
+      hostConn = null;
+      guestConnected = false;
+      resuming = false;
+      roomCode = "";
+      lastView = null;
+      localNotice = "";
+      updateNotice();
+      showError(text);
+    }
+
+    function onHostMessage(msg) {
+      if (!msg || typeof msg != "object") {
+        return;
+      }
+      if (msg.type == "view") {
+        resuming = false;
+        setLocalNotice("");
+        render(msg.view);
+        saveSession();
+      }
+      if (msg.type == "rejected") {
+        giveUp(msg.reason);
+      }
+    }
+
+    // =====================================================
+    //  PART 3: GAME RULES (host only)
+    // =====================================================
+
+    // every player sends actions here. p = player number (0 to 3)
+    function handleMessage(p, msg) {
+      // host starts the game from the lobby
+      if (msg.type == "start" && p == 0 && game.phase == "lobby") {
+        // empty seats are filled by computer players (bots)
+        if (!game.bots) game.bots = [false, false, false, false];
+        var botNo = 0;
+        for (var i = 0; i < 4; i++) {
+          if (game.names[i] == "") {
+            botNo++;
+            game.names[i] = "Bot " + botNo;
+            game.tokens[i] = "";
+            game.away[i] = false;
+            game.bots[i] = true;
+          }
+        }
+        startRound();
+        return;
+      }
+
+      // host starts the next round
+      if (msg.type == "next" && p == 0 && game.phase == "done") {
+        startRound();
+        return;
+      }
+
+      // a player has seen his card
+      if (msg.type == "ready" && game.phase == "deal") {
+        game.ready[p] = true;
+        var all = true;
+        for (var k = 0; k < 4; k++) {
+          if (!game.ready[k]) all = false;
+        }
+        if (all) {
+          game.phase = "order"; // Babu and Police are revealed now
+        }
+        sendAll();
+        return;
+      }
+
+      // Babu orders: find the Chor or the Dakat
+      if (msg.type == "order" && game.phase == "order" && game.roles[p] == "Babu") {
+        if (msg.choice == "Chor" || msg.choice == "Dakat") {
+          game.target = msg.choice;
+          game.phase = "guess";
+          sendAll();
+        }
+        return;
+      }
+
+      // Police picks a card
+      if (msg.type == "guess" && game.phase == "guess" && game.roles[p] == "Police") {
+        var chosen = msg.index;
+        if (chosen === 0 || chosen === 1 || chosen === 2 || chosen === 3) {
+          if (chosen != p && game.roles[chosen] != "Babu") {
+            finishRound(chosen);
+          }
+        }
+        return;
+      }
+    }
+
+    // new round: shuffle the roles, one role for each player
+    function startRound() {
+      game.roles = shuffle(roleNames);
+      game.ready = [false, false, false, false];
+      game.target = "";
+      game.result = null;
+      game.phase = "deal";
+      game.round++;
+      sendAll();
+    }
+
+    // Police guessed: calculate points
+    function finishRound(chosen) {
+      var correct = (game.roles[chosen] == game.target);
+      var roundPoints = [0, 0, 0, 0];
+
+      // everyone gets the points of their role
+      for (var i = 0; i < 4; i++) {
+        roundPoints[i] = points[game.roles[i]];
+      }
+
+      var policeIdx = game.roles.indexOf("Police");
+      var targetIdx = game.roles.indexOf(game.target);
+
+      if (correct) {
+        roundPoints[targetIdx] = 0;   // caught! Chor/Dakat gets 0
+      } else {
+        roundPoints[policeIdx] = 0;   // wrong guess! Police gets 0
+      }
+
+      for (var p = 0; p < 4; p++) {
+        game.totals[p] = game.totals[p] + roundPoints[p];
+      }
+
+      game.rows.push({ target: game.target, pts: roundPoints });
+      game.result = {
+        roles: game.roles.slice(),
+        correct: correct,
+        policeIdx: policeIdx,
+        targetIdx: targetIdx,
+        roundPoints: roundPoints
+      };
+      game.phase = "done";
+      sendAll();
+    }
+
+    // ----- bots: computer players act by themselves after a short pause -----
+    var botKey = "";
+
+    function isBot(i) {
+      return !!(game && game.bots && game.bots[i]);
+    }
+
+    function scheduleBots() {
+      if (!game || game.phase == "lobby" || !game.bots) return;
+      var key = game.round + "-" + game.phase;
+      if (key == botKey) return;
+      botKey = key;
+      var round = game.round;
+      var phase = game.phase;
+
+      function later(fn, ms) {
+        setTimeout(function () {
+          if (game && game.round == round && game.phase == phase) fn();
+        }, ms);
+      }
+
+      var i;
+      if (phase == "deal") {
+        for (i = 0; i < 4; i++) {
+          if (isBot(i) && !game.ready[i]) {
+            (function (b) {
+              later(function () { handleMessage(b, { type: "ready" }); }, 1500 + Math.random() * 2500);
+            })(i);
+          }
+        }
+      } else if (phase == "order") {
+        var babu = game.roles.indexOf("Babu");
+        if (isBot(babu)) {
+          later(function () {
+            handleMessage(babu, { type: "order", choice: Math.random() < 0.5 ? "Chor" : "Dakat" });
+          }, 2000 + Math.random() * 2000);
+        }
+      } else if (phase == "guess") {
+        var police = game.roles.indexOf("Police");
+        if (isBot(police)) {
+          later(function () {
+            var options = [];
+            for (var k = 0; k < 4; k++) {
+              if (game.roles[k] != "Babu" && game.roles[k] != "Police") options.push(k);
+            }
+            handleMessage(police, { type: "guess", index: options[Math.floor(Math.random() * options.length)] });
+          }, 2500 + Math.random() * 2500);
+        }
+      }
+    }
+
+    // what player p is allowed to see (never other people's roles)
+    function buildView(p) {
+      // names of players who lost connection
+      var gone = [];
+      for (var i = 0; i < 4; i++) {
+        if (game.away[i] && game.names[i] != "") {
+          gone.push(game.names[i]);
+        }
+      }
+      var notice = "";
+      if (gone.length > 0) {
+        notice = gone.join(", ") + " er connection hariyeche. Ferot ashar opekkha korchi...";
+      }
+
+      // voice chat: who is in, and the PeerJS id of each phone
+      var voiceIds = ["cpbd-" + roomCode, "", "", ""];
+      for (var v = 1; v < 4; v++) {
+        if (guestConns[v] && guestConns[v].open) {
+          voiceIds[v] = guestConns[v].peer;   // everybody who is connected is in the voice chat
+        }
+      }
+
+      var view = {
+        phase: game.phase,
+        code: roomCode,
+        myIndex: p,
+        names: game.names.slice(),
+        away: game.away.slice(),
+        voiceIds: voiceIds,
+        totals: game.totals.slice(),
+        rows: game.rows,
+        round: game.round,
+        ready: game.ready.slice(),
+        target: game.target,
+        notice: notice,
+        myRole: "",
+        babuIndex: -1,
+        policeIndex: -1,
+        result: null
+      };
+
+      if (game.phase != "lobby") {
+        view.myRole = game.roles[p];   // you may see your own card
+      }
+      if (game.phase == "order" || game.phase == "guess" || game.phase == "done") {
+        view.babuIndex = game.roles.indexOf("Babu");     // these two are shown to everyone
+        view.policeIndex = game.roles.indexOf("Police");
+      }
+      if (game.phase == "done") {
+        view.result = game.result;     // everything is shown at the end of the round
+      }
+      return view;
+    }
+
+    // send every player his own view (host draws his own screen directly)
+    function sendAll() {
+      saveSession(); // so the game survives a host refresh
+      for (var p = 0; p < 4; p++) {
+        var view = buildView(p);
+        if (p == 0) {
+          render(view);
+        } else if (guestConns[p] && guestConns[p].open) {
+          try {
+            guestConns[p].send({ type: "view", view: view });
+          } catch (e) { }
+        }
+      }
+      scheduleBots();
+    }
+
+    // a player does something (host does it directly, guest sends it to the host)
+    function sendToHost(msg) {
+      if (isHost) {
+        handleMessage(0, msg);
+      } else if (hostConn && hostConn.open) {
+        hostConn.send(msg);
+      } else {
+        setLocalNotice("Connection nai. Ferot connect hole abar chesta koro.");
+        checkConnection();
+      }
+    }
+
+    // =====================================================
+    //  PART 4: DRAWING THE SCREEN (everyone)
+    // =====================================================
+    function render(view) {
+      lastView = view;
+      showCancel(false);
+      if (view.phase == "lobby") {
+        drawLobby(view);
+        showScreen("lobby");
+      } else {
+        showScreen("game");
+        drawGame(view);
+      }
+      updateNotice();
+      syncVoice(view);
+    }
+
+    // ----- lobby -----
+    function drawLobby(view) {
+      getEl("lobbyCode").textContent = view.code;
+
+      var html = "";
+      var seats = 0;
+      for (var i = 0; i < 4; i++) {
+        if (view.names[i] != "") {
+          seats++;
+          var you = "";
+          if (i == view.myIndex) you = " (tumi)";
+          if (view.away[i]) {
+            html += '<div class="slot filled offline">' + safe(view.names[i]) + you + ' (ferot ashche...)</div>';
+          } else {
+            html += '<div class="slot filled">' + safe(view.names[i]) + you + '</div>';
+          }
+        } else {
+          html += '<div class="slot">Opekkha korchi...</div>';
+        }
+      }
+      getEl("slots").innerHTML = html;
+
+      if (view.myIndex == 0) {
+        var startText = "Game shuru koro";
+        if (seats < 4) startText += " (" + (4 - seats) + " ta bot khelbe)";
+        getEl("lobbyActs").innerHTML = '<button class="btn" id="startBtn">' + startText + '</button>';
+        getEl("startBtn").onclick = function () {
+          sendToHost({ type: "start" });
+        };
+      } else {
+        getEl("lobbyActs").innerHTML = "<p class='subtitle'>Host game shuru korle shuru hobe.</p>";
+      }
+    }
+
+    // ----- game -----
+    function drawGame(view) {
+      if (!boardBuilt) {
+        buildBoard();
+      }
+      // new round: hide old summary, forget old peek
+      if (view.round != shownRound) {
+        shownRound = view.round;
+        getEl("sumBox").style.display = "none";
+        myPeeking = false;
+      }
+      drawPlayers(view);
+      drawMessage(view);
+      drawCards(view);
+      drawTableHead(view);
+      drawTable(view);
+    }
+
+    // create the 4 cards one time. Card i belongs to player i.
+    function buildBoard() {
+      var html = "";
+      for (var i = 0; i < 4; i++) {
+        html += '<button class="card" id="card' + i + '">';
+        html += '<div class="card-inner">';
+        html += '<div class="card-front"><div class="card-question" id="q' + i + '">?</div><div class="card-owner" id="owner' + i + '"></div></div>';
+        html += '<div class="card-back">';
+        html += '<div class="card-role" id="role' + i + '"></div>';
+        html += '<div class="card-points" id="pts' + i + '"></div>';
+        html += '<div class="card-name" id="cname' + i + '"></div>';
+        html += '<div class="card-tag" id="tag' + i + '" hidden></div>';
+        html += '</div></div></button>';
+      }
+      getEl("board").innerHTML = html;
+      for (var k = 0; k < 4; k++) {
+        setupCard(k);
+      }
+      boardBuilt = true;
+    }
+
+    // connect click and hold events to one card
+    function setupCard(i) {
+      var card = getEl("card" + i);
+      card.onclick = function () {
+        cardClicked(i);
+      };
+      card.oncontextmenu = function () {
+        return false; // no long-press menu on phone
+      };
+      card.onpointerdown = function () {
+        startPeek(i);
+      };
+      card.onpointerup = function () {
+        stopPeek();
+      };
+      card.onpointerleave = function () {
+        stopPeek();
+      };
+      card.onpointercancel = function () {
+        stopPeek();
+      };
+    }
+
+    // is card i shown to everyone?
+    function isRevealed(view, i) {
+      if (view.phase == "done") return true;
+      if (view.phase == "order" || view.phase == "guess") {
+        if (i == view.babuIndex || i == view.policeIndex) return true;
+      }
+      return false;
+    }
+
+    // finger down on MY card: show my role
+    function startPeek(i) {
+      if (!lastView || lastView.phase == "lobby") return;
+      if (i != lastView.myIndex) return;
+      if (isRevealed(lastView, i)) return;
+      myPeeking = true;
+      if (lastView.phase == "deal") {
+        peekedRound = lastView.round;
+        var readyBtn = getEl("readyBtn");
+        if (readyBtn) {
+          readyBtn.disabled = false;
+        }
+      }
+      drawCards(lastView);
+    }
+
+    // finger up: hide my card again
+    function stopPeek() {
+      if (!myPeeking) return;
+      myPeeking = false;
+      if (lastView) {
+        drawCards(lastView);
+      }
+    }
+
+    // Police taps a card to guess
+    function cardClicked(i) {
+      var v = lastView;
+      if (!v) return;
+      if (v.phase == "guess" && v.myIndex == v.policeIndex) {
+        if (i != v.babuIndex && i != v.policeIndex) {
+          sendToHost({ type: "guess", index: i });
+        }
+      }
+    }
+
+    // ----- player boxes -----
+    function drawPlayers(view) {
+      var html = "";
+      for (var i = 0; i < 4; i++) {
+        var active = false;
+        if (view.phase == "deal" && !view.ready[i]) active = true;
+        if (view.phase == "order" && i == view.babuIndex) active = true;
+        if (view.phase == "guess" && i == view.policeIndex) active = true;
+
+        var you = "";
+        if (i == view.myIndex) you = " (tumi)";
+        var cls = "player-box";
+        if (active) cls += " active";
+        if (view.away[i]) cls += " offline";
+        if (speaking[i]) cls += " speaking";
+
+        html += '<div class="' + cls + '" id="pbox' + i + '">';
+        html += '<span class="player-name">' + safe(view.names[i]) + you + '</span>';
+        html += '<span class="player-score">' + view.totals[i] + '</span>';
+        html += '</div>';
+      }
+      getEl("chips").innerHTML = html;
+    }
+
+    // ----- message and buttons -----
+    function drawMessage(view) {
+      var me = view.myIndex;
+      var msg = "";
+      var acts = "";
+
+      if (view.phase == "deal") {
+        if (!view.ready[me]) {
+          msg = bold(view.names[me]) + ", tomar card ta <b>chepe dhoro</b> dekhte. Chere dile lukiye jabe.";
+          var disabledText = "";
+          if (peekedRound != view.round) disabledText = " disabled";
+          acts = '<button class="btn" id="readyBtn"' + disabledText + '>Dekhechi, ready</button>';
+        } else {
+          var count = 0;
+          for (var i = 0; i < 4; i++) {
+            if (view.ready[i]) count++;
+          }
+          msg = "Baki der opekkha korchi... <b>" + count + "/4</b> jon ready.";
+        }
+      }
+
+      else if (view.phase == "order") {
+        var babuName = view.names[view.babuIndex];
+        var policeName = view.names[view.policeIndex];
+        if (me == view.babuIndex) {
+          msg = bold(babuName) + " (Babu), " + bold(policeName) + " ke bolo kake khujte hobe:";
+          acts = '<button class="btn btn-teal" id="chorBtn">Find the Chor</button>' +
+            '<button class="btn btn-pink" id="dakatBtn">Find the Dakat</button>';
+        } else {
+          msg = bold(babuName) + " (Babu) hukum dichhe " + bold(policeName) + " (Police) ke. Mukh shamlao!";
+        }
+      }
+
+      else if (view.phase == "guess") {
+        var pName = view.names[view.policeIndex];
+        if (me == view.policeIndex) {
+          msg = bold(pName) + " (Police), <b>" + view.target + "</b> ke dhoro. Je card e tomar sondeho, oita chapo.";
+        } else {
+          msg = bold(pName) + " (Police) <b>" + view.target + "</b> khujche. Mukh shamlao!";
+        }
+      }
+
+      else if (view.phase == "done") {
+        var r = view.result;
+        var policeN = view.names[r.policeIdx];
+        var targetN = view.names[r.targetIdx];
+        if (r.correct) {
+          msg = bold(policeN) + " dhorlo " + bold(targetN) + " ke (" + view.target + "). " + bold(targetN) + " pelo 0.";
+        } else {
+          msg = bold(policeN) + " bhul card tulche. Police pelo 0, " + bold(targetN) + " er " + view.target + " nijer point rakhlo.";
+        }
+        if (me == 0) {
+          acts = '<button class="btn" id="nextBtn">Next round</button>';
+        } else {
+          acts = "<div class='subtitle'>Host next round shuru korle notun card pabe.</div>";
+        }
+      }
+
+      getEl("msg").innerHTML = msg;
+      getEl("acts").innerHTML = acts;
+
+      // connect the buttons we just created
+      if (getEl("readyBtn")) {
+        getEl("readyBtn").onclick = function () {
+          sendToHost({ type: "ready" });
+        };
+      }
+      if (getEl("chorBtn")) {
+        getEl("chorBtn").onclick = function () {
+          sendToHost({ type: "order", choice: "Chor" });
+        };
+        getEl("dakatBtn").onclick = function () {
+          sendToHost({ type: "order", choice: "Dakat" });
+        };
+      }
+      if (getEl("nextBtn")) {
+        getEl("nextBtn").onclick = function () {
+          sendToHost({ type: "next" });
+        };
+      }
+    }
+
+    // ----- the 4 cards -----
+    function drawCards(view) {
+      for (var i = 0; i < 4; i++) {
+        var revealed = isRevealed(view, i);
+
+        // which role can this phone show on card i?
+        var known = "";
+        if (view.result) {
+          known = view.result.roles[i];
+        } else if (i == view.babuIndex) {
+          known = "Babu";
+        } else if (i == view.policeIndex) {
+          known = "Police";
+        } else if (i == view.myIndex) {
+          known = view.myRole;    // only my own card
+        }
+
+        // did this player lose his points this round?
+        var lost = false;
+        if (view.result) {
+          if (view.result.correct && i == view.result.targetIdx) lost = true;
+          if (!view.result.correct && i == view.result.policeIdx) lost = true;
+        }
+
+        // is the card turned over?
+        var flip = revealed;
+        if (i == view.myIndex && myPeeking && view.phase != "done") flip = true;
+
+        // can Police pick this card?
+        var canClick = false;
+        if (view.phase == "guess" && view.myIndex == view.policeIndex) {
+          if (i != view.babuIndex && i != view.policeIndex) canClick = true;
+        }
+
+        // build the class list
+        var cls = "card";
+        if (known != "") cls += " " + known;
+        if (flip) cls += " flip";
+        if (lost) cls += " lost";
+        if (i == view.myIndex) cls += " mine";
+        if (canClick) cls += " can-click";
+        getEl("card" + i).className = cls;
+
+        // front side
+        var you = "";
+        if (i == view.myIndex) you = " (tumi)";
+        getEl("owner" + i).textContent = view.names[i] + you;
+        if (i == view.myIndex && !revealed) {
+          getEl("q" + i).textContent = "Hold";
+          getEl("q" + i).style.fontSize = "28px";
+        } else {
+          getEl("q" + i).textContent = "?";
+          getEl("q" + i).style.fontSize = "";
+        }
+
+        // back side
+        getEl("role" + i).textContent = known;
+        var pts = "";
+        if (known != "") pts = points[known];
+        if (view.result) pts = view.result.roundPoints[i];
+        getEl("pts" + i).textContent = pts;
+        getEl("cname" + i).textContent = view.names[i];
+
+        var tag = getEl("tag" + i);
+        if (lost) {
+          tag.hidden = false;
+          if (view.result.correct) {
+            tag.textContent = "Caught";
+          } else {
+            tag.textContent = "Wrong guess";
+          }
+        } else {
+          tag.hidden = true;
+        }
+      }
+    }
+
+    // ----- score table -----
+    function drawTableHead(view) {
+      var html = "<tr><th>#</th><th>Find</th>";
+      for (var i = 0; i < 4; i++) {
+        html += "<th>" + safe(view.names[i]) + "</th>";
+      }
+      html += "</tr>";
+      getEl("thead").innerHTML = html;
+    }
+
+    function drawTable(view) {
+      var html = "";
+      if (view.rows.length == 0) {
+        html = '<tr><td colspan="6" class="empty">Prothom round sesh hole score ekhane ashbe.</td></tr>';
+      }
+      for (var i = 0; i < view.rows.length; i++) {
+        html += "<tr><td>" + (i + 1) + "</td><td>" + view.rows[i].target + "</td>";
+        for (var j = 0; j < 4; j++) {
+          html += "<td>" + view.rows[i].pts[j] + "</td>";
+        }
+        html += "</tr>";
+      }
+      getEl("tbody").innerHTML = html;
+
+      var foot = '<tr><td colspan="2">Total</td>';
+      for (var k = 0; k < 4; k++) {
+        foot += "<td>" + view.totals[k] + "</td>";
+      }
+      foot += "</tr>";
+      getEl("tfoot").innerHTML = foot;
+    }
+
+    // ----- summary: final ranking -----
+    function showSummary() {
+      if (!lastView) return;
+      var view = lastView;
+      var list = [];
+      for (var i = 0; i < 4; i++) {
+        // rank = how many players have a higher score
+        var higher = 0;
+        for (var j = 0; j < 4; j++) {
+          if (view.totals[j] > view.totals[i]) higher++;
+        }
+        list.push({ name: view.names[i], score: view.totals[i], rank: ranks[higher] });
+      }
+      list.sort(function (a, b) {
+        return b.score - a.score;
+      });
+
+      var html = "<h2>Summary after " + view.rows.length + " round(s)</h2>";
+      for (var k = 0; k < list.length; k++) {
+        html += '<div class="rank-row"><span>' + safe(list[k].name) + '</span>';
+        html += '<span>' + list[k].score + ' pts &nbsp;<b>' + list[k].rank + '</b></span></div>';
+      }
+      getEl("sumBox").innerHTML = html;
+      getEl("sumBox").style.display = "block";
+    }
+
+    // =====================================================
+    //  PART 5: VOICE CHAT (everyone can talk to everyone)
+    //  - As soon as you are in the room, your phone joins the voice
+    //    mesh on its own and LISTENS to the others (no button needed).
+    //  - Until you press "Mic", you send silence.
+    //  - Pressing "Mic" asks for the microphone once. After that the
+    //    same button turns your mic on / off (calls are NOT restarted,
+    //    only the sound inside them is swapped, so it is instant).
+    //  - "Speaker" only changes what YOU hear.
+    //  - To avoid two calls between the same 2 phones, the player with
+    //    the SMALLER seat number always makes the call.
+    //  - The host sends everyone the phone id of every connected
+    //    player (view.voiceIds), so every phone knows who to call.
+    //  - Every 3 seconds each phone checks all calls and repairs
+    //    the broken ones.
+    // =====================================================
+
+    // make the audio engine and a silent sound (works without permission)
+    function initAudio() {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (!silentStream) {
+          silentStream = audioCtx.createMediaStreamDestination().stream;
+        }
+      } catch (e) { }
+    }
+
+    // the sound I send right now: real mic if it is on, otherwise silence
+    function getOutStream() {
+      initAudio();
+      if (micStream) return micStream;
+      return silentStream;
+    }
+
+    // put my current sound into every running call (no new call needed)
+    function pushTrackToCalls() {
+      var out = getOutStream();
+      var track = out ? out.getAudioTracks()[0] : null;
+      if (!track) return;
+      for (var id in voiceCalls) {
+        var pc = voiceCalls[id].call.peerConnection;
+        if (!pc) continue;
+        pc.getSenders().forEach(function (sender) {
+          if (sender.track && sender.track.kind == "audio" && sender.track !== track) {
+            sender.replaceTrack(track).catch(function () { });
+          }
+        });
+      }
+    }
+
+    // round icon buttons (SVG, same look as the theme)
+    var SVG_OPEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
+    var ICON_MIC = SVG_OPEN + '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>';
+    var ICON_MIC_OFF = SVG_OPEN + '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/><path d="M4 4l16 16"/></svg>';
+    var ICON_SPK = SVG_OPEN + '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+    var ICON_SPK_OFF = SVG_OPEN + '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M4 4l16 16"/></svg>';
+
+    function updateVoiceButtons() {
+      var ids = ["voiceBtn", "voiceBtn2"];
+      for (var i = 0; i < ids.length; i++) {
+        var btn = getEl(ids[i]);
+        btn.innerHTML = micOn ? ICON_MIC : ICON_MIC_OFF;
+        btn.className = "icon-btn " + (micOn ? "on" : "muted");
+      }
+      var pills = ["voicePill", "voicePill2"];
+      for (var q = 0; q < pills.length; q++) {
+        var pill = getEl(pills[q]);
+        pill.className = "voice-pill" + (micOn ? "" : " off");
+        pill.getElementsByTagName("b")[0].textContent = micOn ? "Voice on" : "Voice off";
+      }
+      var spk = ["spkBtn", "spkBtn2"];
+      for (var s = 0; s < spk.length; s++) {
+        var sb = getEl(spk[s]);
+        sb.innerHTML = speakerOn ? ICON_SPK : ICON_SPK_OFF;
+        sb.className = "icon-btn " + (speakerOn ? "on" : "muted");
+      }
+    }
+
+    // Mic button: 1st press asks permission, then it is on / off
+    function toggleMic() {
+      unlockAudio();
+      if (!micStream) {
+        startMic();
+        return;
+      }
+      micOn = !micOn;
+      micStream.getAudioTracks().forEach(function (t) {
+        t.enabled = micOn;
+      });
+      updateVoiceButtons();
+    }
+
+    function startMic() {
+      if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Mic er jonno game ta https:// link e kholte hobe. Ei link e mic kaj korbe na.");
+        return;
+      }
+      navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        video: false
+      }).then(function (stream) {
+        micStream = stream;
+        micOn = true;
+        stream.getAudioTracks().forEach(function (t) {
+          t.enabled = true;
+          // phone took the mic away (call, other app): show it as off
+          t.onended = function () {
+            if (micStream === stream) {
+              micStream = null;
+              micOn = false;
+              analysers["me"] = null;
+              pushTrackToCalls();
+              updateVoiceButtons();
+            }
+          };
+        });
+        pushTrackToCalls();
+        watchSpeaking("me", stream);
+        updateVoiceButtons();
+      }).catch(function () {
+        alert("Mic permission paoa jayni. Browser er settings e giye mic allow koro.");
+      });
+    }
+
+    // speaker on / off: only for this phone
+    function toggleSpeaker() {
+      speakerOn = !speakerOn;
+      var list = getEl("audioBox").getElementsByTagName("audio");
+      for (var i = 0; i < list.length; i++) {
+        list[i].muted = !speakerOn;
+      }
+      unlockAudio();
+      updateVoiceButtons();
+    }
+
+    // ----- sound playing (browsers block sound until the user taps) -----
+    function showAudioHint(on) {
+      getEl("audioHint").style.display = on ? "block" : "none";
+    }
+
+    function playAll() {
+      var list = getEl("audioBox").getElementsByTagName("audio");
+      var blocked = false;
+      var left = list.length;
+      for (var i = 0; i < list.length; i++) {
+        (function (el) {
+          var r = el.play();
+          if (r && r.catch) {
+            r.catch(function () {
+              blocked = true;
+              showAudioHint(true);
+            });
+          }
+        })(list[i]);
+      }
+      return blocked;
+    }
+
+    // called on every tap: lets the browser play the others' voices
+    function unlockAudio() {
+      initAudio();
+      try {
+        if (audioCtx && audioCtx.state == "suspended") {
+          audioCtx.resume();
+        }
+      } catch (e) { }
+      var list = getEl("audioBox").getElementsByTagName("audio");
+      if (list.length == 0) {
+        showAudioHint(false);
+        return;
+      }
+      var ok = 0;
+      var done = 0;
+      for (var i = 0; i < list.length; i++) {
+        var r = list[i].play();
+        if (r && r.then) {
+          r.then(function () {
+            ok++;
+            done++;
+            if (done == list.length) showAudioHint(ok < list.length);
+          }).catch(function () {
+            done++;
+            if (done == list.length) showAudioHint(ok < list.length);
+          });
+        } else {
+          done++;
+          ok++;
+        }
+      }
+    }
+
+    // ----- calls -----
+    // seat number of a phone id (-1 if we don't know it yet)
+    function seatOfPeer(id) {
+      if (!lastView || !lastView.voiceIds) return -1;
+      for (var i = 0; i < 4; i++) {
+        if (i != lastView.myIndex && lastView.voiceIds[i] == id) return i;
+      }
+      return -1;
+    }
+
+    // someone calls me: always answer (we listen even if our mic is off)
+    function onIncomingCall(call) {
+      var out = getOutStream();
+      if (!out) {
+        try { call.close(); } catch (e) { }
+        return;
+      }
+      call.answer(out);
+      attachCall(call);
+    }
+
+    // remember a call and play its sound
+    function attachCall(call) {
+      var id = call.peer;
+      var old = voiceCalls[id];
+      if (old && old.call !== call) {
+        try { old.call.close(); } catch (e) { }
+      }
+      var entry = { call: call, id: id, born: Date.now(), got: false, badSince: 0 };
+      voiceCalls[id] = entry;
+
+      call.on("stream", function (stream) {
+        if (voiceCalls[id] !== entry) return;
+        entry.got = true;
+        playRemote(id, stream);
+      });
+      function ended() {
+        if (voiceCalls[id] === entry) {
+          delete voiceCalls[id];
+          removeRemote(id);
+        }
+      }
+      call.on("close", ended);
+      call.on("error", ended);
+    }
+
+    function audioIdOf(id) {
+      return "aud-" + id.replace(/[^a-zA-Z0-9_-]/g, "_");
+    }
+
+    function playRemote(id, stream) {
+      var elId = audioIdOf(id);
+      var el = getEl(elId);
+      if (!el) {
+        el = document.createElement("audio");
+        el.id = elId;
+        el.autoplay = true;
+        el.setAttribute("playsinline", "");
+        getEl("audioBox").appendChild(el);
+      }
+      if (el.srcObject !== stream) {
+        el.srcObject = stream;
+      }
+      el.muted = !speakerOn;
+      var r = el.play();
+      if (r && r.catch) {
+        r.catch(function () {
+          showAudioHint(true);   // browser blocked the sound, ask for one tap
+        });
+      }
+      watchSpeaking(id, stream);
+    }
+
+    function removeRemote(id) {
+      var el = getEl(audioIdOf(id));
+      if (el) {
+        el.srcObject = null;
+        el.remove();
+      }
+      unwatchSpeaking(id);
+    }
+
+    function closeCall(id) {
+      var entry = voiceCalls[id];
+      if (entry) {
+        try { entry.call.close(); } catch (e) { }
+        delete voiceCalls[id];
+      }
+      removeRemote(id);
+    }
+
+    function closeAllCalls() {
+      for (var id in voiceCalls) {
+        closeCall(id);
+      }
+    }
+
+    // make sure every call that should exist exists, and broken ones are replaced
+    function syncVoice(view) {
+      if (!view || !view.voiceIds || !peer || !peer.open) return;
+      var me = view.myIndex;
+      initAudio();
+      var out = getOutStream();
+      if (!out) return;
+
+      // who should I be connected to
+      var want = {};
+      for (var j = 0; j < 4; j++) {
+        if (j != me && view.voiceIds[j] != "" && !view.away[j]) {
+          want[view.voiceIds[j]] = j;
+        }
+      }
+
+      // check the calls I have
+      for (var id in voiceCalls) {
+        if (want[id] === undefined) {
+          closeCall(id); // that phone is gone or has a new id
+          continue;
+        }
+        var entry = voiceCalls[id];
+        var pc = entry.call.peerConnection;
+        var state = pc ? pc.iceConnectionState : "";
+        var now = Date.now();
+        var dead = false;
+        if (state == "failed" || state == "closed") {
+          dead = true;
+        } else if (state == "disconnected") {
+          if (entry.badSince == 0) entry.badSince = now;
+          if (now - entry.badSince > 8000) dead = true;
+        } else {
+          entry.badSince = 0;
+        }
+        if (!entry.got && now - entry.born > 20000) {
+          dead = true; // never started
+        }
+        if (dead) {
+          closeCall(id);
+        }
+      }
+
+      // call everyone with a bigger seat number who is not connected yet
+      for (var peerId in want) {
+        var seat = want[peerId];
+        if (!voiceCalls[peerId] && me < seat) {
+          var call = peer.call(peerId, out);
+          if (call) {
+            attachCall(call);
+          }
+        }
+      }
+    }
+
+    // ----- "who is talking" light -----
+    function watchSpeaking(key, stream) {
+      initAudio();
+      if (!audioCtx) return;
+      unwatchSpeaking(key);
+      try {
+        var source = audioCtx.createMediaStreamSource(stream);
+        var analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 512;
+        source.connect(analyser);
+        analysers[key] = { source: source, analyser: analyser, data: new Uint8Array(analyser.fftSize) };
+      } catch (e) { }
+    }
+
+    function unwatchSpeaking(key) {
+      var a = analysers[key];
+      if (a) {
+        try { a.source.disconnect(); } catch (e) { }
+      }
+      delete analysers[key];
+    }
+
+    function setSpeaking(i, on) {
+      if (i < 0 || i > 3 || speaking[i] == on) return;
+      speaking[i] = on;
+      var box = getEl("pbox" + i);
+      if (box) {
+        if (on) box.classList.add("speaking");
+        else box.classList.remove("speaking");
+      }
+    }
+
+    setInterval(function () {
+      if (!lastView) return;
+      var talking = [false, false, false, false];
+      for (var key in analysers) {
+        var a = analysers[key];
+        if (!a) continue;
+        a.analyser.getByteTimeDomainData(a.data);
+        var peak = 0;
+        for (var k = 0; k < a.data.length; k++) {
+          var level = Math.abs(a.data[k] - 128);
+          if (level > peak) peak = level;
+        }
+        if (peak > 12) {
+          var seat = (key == "me") ? lastView.myIndex : seatOfPeer(key);
+          if (seat >= 0 && !(key == "me" && !micOn)) talking[seat] = true;
+        }
+      }
+      for (var i = 0; i < 4; i++) {
+        setSpeaking(i, talking[i]);
+      }
+    }, 200);
+
+    // every 3 sec: fix voice calls that broke
+    setInterval(function () {
+      if (lastView) syncVoice(lastView);
+    }, 3000);
+
+    // phone came back (screen on): wake the sound up again
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState != "visible") return;
+      unlockAudio();
+      if (lastView) syncVoice(lastView);
+    });
+
+    // any tap anywhere: allow sound
+    document.addEventListener("pointerdown", unlockAudio);
+
+    // start the audio engine (silent) as soon as the page loads
+    initAudio();
+
+    // ===== Connect the main buttons =====
+    getEl("voiceBtn").onclick = toggleMic;
+    getEl("voiceBtn2").onclick = toggleMic;
+    getEl("audioHint").onclick = unlockAudio;
+    getEl("spkBtn").onclick = toggleSpeaker;
+    getEl("spkBtn2").onclick = toggleSpeaker;
+    updateVoiceButtons();
+    getEl("cancelResumeBtn").onclick = function () {
+      resetConnection();
+      setStatus("", false);
+      getEl("createBtn").disabled = false;
+      getEl("joinBtn").disabled = false;
+      showScreen("menu");
+    };
+    getEl("createBtn").onclick = createRoom;
+    getEl("joinBtn").onclick = joinRoom;
+    getEl("sumBtn").onclick = showSummary;
+    getEl("leaveBtn").onclick = leaveGame;
+    getEl("leaveBtn2").onclick = leaveGame;
+
+    // ===== LOCAL (same device) GAME: kept separate so it never clashes with online code =====
+    (function () {
+
+// ===== Game data =====
+var points = { Babu: 100, Police: 80, Dakat: 60, Chor: 40 };
+var roleNames = ["Babu", "Police", "Dakat", "Chor"];
+var ranks = ["Raja", "Minister", "Proja", "Slave"];
+
+var names = [];               // 4 player names
+var totals = [0, 0, 0, 0];    // total score of each player
+var rows = [];                // one entry per finished round
+var roles = [];               // role on each card
+var owner = [];               // which player took each card (null = not taken yet)
+var turn = 0;                 // which pick number it is now (0 to 3)
+var pickOrder = [0, 1, 2, 3]; // order of players for this round (shuffled every round)
+var phase = "";               // pick, peek, reveal, order, guess, done
+var target = "";              // "Chor" or "Dakat" (Babu's order)
+var currentCard = 0;          // the card the current player is holding
+var peeked = false;           // has the player looked at the card yet?
+
+// ===== Small helper functions =====
+function getEl(id) {
+  return document.getElementById("l-" + id);
+}
+
+function getCards() {
+  return document.querySelectorAll("#l-board .card");
+}
+
+// stops names like <b> from breaking the page
+function safe(text) {
+  text = String(text);
+  text = text.replace(/&/g, "&amp;");
+  text = text.replace(/</g, "&lt;");
+  text = text.replace(/>/g, "&gt;");
+  return text;
+}
+
+function bold(text) {
+  return "<b>" + safe(text) + "</b>";
+}
+
+// mixes the list in random order
+function shuffle(list) {
+  var result = list.slice();
+  for (var i = result.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var temp = result[i];
+    result[i] = result[j];
+    result[j] = temp;
+  }
+  return result;
+}
+
+// ===== Start the game =====
+function startGame() {
+  var inputs = document.querySelectorAll("#l-setup input");
+  names = [];
+  for (var i = 0; i < inputs.length; i++) {
+    var name = inputs[i].value.trim();
+    if (name == "") {
+      name = "Player " + (i + 1);
+    }
+    names.push(name);
+  }
+  getEl("setup").style.display = "none";
+  getEl("game").style.display = "block";
+  drawTableHead();
+  drawPlayers();
+  drawTable();
+  newRound();
+}
+
+// ===== New round: shuffle the roles and make 4 cards =====
+function newRound() {
+  roles = shuffle(roleNames);
+  owner = [null, null, null, null];
+  turn = 0;
+  pickOrder = shuffle([0, 1, 2, 3]); // new random order every round
+  phase = "pick";
+  target = "";
+
+  var html = "";
+  for (var i = 0; i < 4; i++) {
+    html += '<button class="card ' + roles[i] + '">';
+    html += '<div class="card-inner">';
+    html += '<div class="card-front"><div class="card-question">?</div><div class="card-owner"></div></div>';
+    html += '<div class="card-back">';
+    html += '<div class="card-role">' + roles[i] + '</div>';
+    html += '<div class="card-points">' + points[roles[i]] + '</div>';
+    html += '<div class="card-name"></div>';
+    html += '<div class="card-tag" hidden></div>';
+    html += '</div></div></button>';
+  }
+  getEl("board").innerHTML = html;
+
+  var cards = getCards();
+  for (var k = 0; k < cards.length; k++) {
+    setupCard(cards[k], k);
+  }
+  getEl("sumBox").style.display = "none";
+  updateScreen();
+}
+
+// connect click and hold events to one card
+function setupCard(card, i) {
+  card.onclick = function () {
+    cardClicked(i);
+  };
+  card.oncontextmenu = function () {
+    return false; // no long-press menu on phone
+  };
+  card.onpointerdown = function () {
+    startPeek(card, i);
+  };
+  card.onpointerup = function () {
+    stopPeek(card, i);
+  };
+  card.onpointerleave = function () {
+    stopPeek(card, i);
+  };
+  card.onpointercancel = function () {
+    stopPeek(card, i);
+  };
+}
+
+// finger down: show the card
+function startPeek(card, i) {
+  if (phase == "peek" && i == currentCard) {
+    card.classList.add("flip");
+    peeked = true;
+    var doneBtn = getEl("dn");
+    if (doneBtn) {
+      doneBtn.disabled = false;
+    }
+  }
+}
+
+// finger up: hide the card again
+function stopPeek(card, i) {
+  if (phase == "peek" && i == currentCard) {
+    card.classList.remove("flip");
+  }
+}
+
+// ===== A card was tapped =====
+function cardClicked(i) {
+  if (phase == "pick" && owner[i] === null) {
+    // the player takes this card
+    owner[i] = pickOrder[turn];
+    var card = getCards()[i];
+    card.querySelector(".card-owner").textContent = names[pickOrder[turn]];
+    card.querySelector(".card-name").textContent = names[pickOrder[turn]];
+    var question = card.querySelector(".card-question");
+    question.textContent = "Hold";
+    question.style.fontSize = "28px";
+    currentCard = i;
+    peeked = false;
+    phase = "peek";
+    updateScreen();
+  } else if (phase == "guess" && roles[i] != "Babu" && roles[i] != "Police") {
+    // Police chose this card
+    finishRound(i);
+  }
+}
+
+// ===== Buttons =====
+function donePeek() {
+  var card = getCards()[currentCard];
+  card.classList.remove("flip");
+  card.querySelector(".card-question").textContent = "";
+  turn++;
+  if (turn == 4) {
+    phase = "reveal";
+  } else {
+    phase = "pick";
+  }
+  updateScreen();
+}
+
+function revealBabuPolice() {
+  var cards = getCards();
+  cards[roles.indexOf("Babu")].classList.add("flip");
+  cards[roles.indexOf("Police")].classList.add("flip");
+  phase = "order";
+  updateScreen();
+}
+
+function chooseTarget(choice) {
+  target = choice;
+  phase = "guess";
+  updateScreen();
+}
+
+// ===== Update message, buttons and highlights =====
+function updateScreen() {
+  var msg = getEl("msg");
+  var acts = getEl("acts");
+  acts.innerHTML = "";
+
+  var babu = owner[roles.indexOf("Babu")];
+  var police = owner[roles.indexOf("Police")];
+
+  // while one player is peeking, other free cards are dimmed
+  var cards = getCards();
+  for (var i = 0; i < cards.length; i++) {
+    if (phase == "peek" && owner[i] === null) {
+      cards[i].classList.add("disabled");
+    } else {
+      cards[i].classList.remove("disabled");
+    }
+  }
+
+  // highlight whose turn it is
+  var boxes = document.querySelectorAll("#l-chips .player-box");
+  for (var j = 0; j < boxes.length; j++) {
+    var active = false;
+    if ((phase == "pick" || phase == "peek") && j == pickOrder[turn]) active = true;
+    if (phase == "order" && j == babu) active = true;
+    if (phase == "guess" && j == police) active = true;
+    if (active) {
+      boxes[j].classList.add("active");
+    } else {
+      boxes[j].classList.remove("active");
+    }
+  }
+
+  if (phase == "pick") {
+    msg.innerHTML = bold(names[pickOrder[turn]]) + ", phone ta hate nao ar ekta card tolo.";
+  }
+
+  if (phase == "peek") {
+    msg.innerHTML = bold(names[pickOrder[turn]]) + ", card ta <b>chepe dhoro</b> dekhte. Chere dile lukiye jabe.";
+    var disabledText = "";
+    if (!peeked) disabledText = " disabled";
+    acts.innerHTML = '<button class="btn" id="l-dn"' + disabledText + '>Done, pass the phone</button>';
+    getEl("dn").onclick = donePeek;
+  }
+
+  if (phase == "reveal") {
+    msg.innerHTML = "Sobai card niyeche. <b>Police</b> ar <b>Babu</b> jor gola-y nijer porichoy dao! Tarpor reveal chapo.";
+    acts.innerHTML = '<button class="btn" id="l-rv">Reveal Babu &amp; Police</button>';
+    getEl("rv").onclick = revealBabuPolice;
+  }
+
+  if (phase == "order") {
+    msg.innerHTML = bold(names[babu]) + " (Babu), " + bold(names[police]) + " ke bolo kake khujte hobe:";
+    acts.innerHTML = '<button class="btn btn-teal" id="l-chorBtn">Find the Chor</button>' +
+                     '<button class="btn btn-pink" id="l-dakatBtn">Find the Dakat</button>';
+    getEl("chorBtn").onclick = function () {
+      chooseTarget("Chor");
+    };
+    getEl("dakatBtn").onclick = function () {
+      chooseTarget("Dakat");
+    };
+  }
+
+  if (phase == "guess") {
+    msg.innerHTML = bold(names[police]) + " (Police), <b>" + target + "</b> ke dhoro. Duto card er ekta tolo.";
+  }
+}
+
+// ===== Police guessed: calculate points =====
+function finishRound(chosenCard) {
+  var correct = (roles[chosenCard] == target);
+  var roundPoints = [0, 0, 0, 0];
+
+  // everyone gets the points of their role
+  for (var k = 0; k < 4; k++) {
+    roundPoints[owner[k]] = points[roles[k]];
+  }
+
+  var policeCard = roles.indexOf("Police");
+  var targetCard = roles.indexOf(target);
+
+  if (correct) {
+    roundPoints[owner[targetCard]] = 0;   // caught! Chor/Dakat gets 0
+  } else {
+    roundPoints[owner[policeCard]] = 0;   // wrong guess! Police gets 0
+  }
+
+  for (var p = 0; p < 4; p++) {
+    totals[p] = totals[p] + roundPoints[p];
+  }
+  rows.push({ target: target, pts: roundPoints });
+  phase = "done";
+
+  // show all cards
+  var cards = getCards();
+  for (var i = 0; i < cards.length; i++) {
+    cards[i].classList.remove("disabled");
+    cards[i].classList.add("flip");
+
+    var lost = false;
+    if (correct && i == targetCard) lost = true;
+    if (!correct && i == policeCard) lost = true;
+
+    if (lost) {
+      cards[i].classList.add("lost");
+      cards[i].querySelector(".card-points").textContent = 0;
+      var tag = cards[i].querySelector(".card-tag");
+      tag.hidden = false;
+      if (correct) {
+        tag.textContent = "Caught";
+      } else {
+        tag.textContent = "Wrong guess";
+      }
+    }
+  }
+
+  drawPlayers();
+  drawTable();
+
+  var policeName = names[owner[policeCard]];
+  var targetName = names[owner[targetCard]];
+  if (correct) {
+    getEl("msg").innerHTML = bold(policeName) + " dhorlo " + bold(targetName) + " ke (" + target + "). " + bold(targetName) + " pelo 0.";
+  } else {
+    getEl("msg").innerHTML = bold(policeName) + " bhul card tulche. Police pelo 0, " + bold(targetName) + " er " + target + " nijer point rakhlo.";
+  }
+
+  getEl("acts").innerHTML = '<button class="btn" id="l-nx">Next round</button>';
+  getEl("nx").onclick = newRound;
+}
+
+// ===== Draw player boxes and score table =====
+function drawPlayers() {
+  var html = "";
+  for (var i = 0; i < 4; i++) {
+    html += '<div class="player-box">';
+    html += '<span class="player-name">' + safe(names[i]) + '</span>';
+    html += '<span class="player-score">' + totals[i] + '</span>';
+    html += '</div>';
+  }
+  getEl("chips").innerHTML = html;
+}
+
+function drawTableHead() {
+  var html = "<tr><th>#</th><th>Find</th>";
+  for (var i = 0; i < 4; i++) {
+    html += "<th>" + safe(names[i]) + "</th>";
+  }
+  html += "</tr>";
+  getEl("thead").innerHTML = html;
+}
+
+function drawTable() {
+  var html = "";
+  if (rows.length == 0) {
+    html = '<tr><td colspan="6" class="empty">Prothom round sesh hole score ekhane ashbe.</td></tr>';
+  }
+  for (var i = 0; i < rows.length; i++) {
+    html += "<tr><td>" + (i + 1) + "</td><td>" + rows[i].target + "</td>";
+    for (var j = 0; j < 4; j++) {
+      html += "<td>" + rows[i].pts[j] + "</td>";
+    }
+    html += "</tr>";
+  }
+  getEl("tbody").innerHTML = html;
+
+  var foot = '<tr><td colspan="2">Total</td>';
+  for (var k = 0; k < 4; k++) {
+    foot += "<td>" + totals[k] + "</td>";
+  }
+  foot += "</tr>";
+  getEl("tfoot").innerHTML = foot;
+}
+
+// ===== Summary: final ranking =====
+function showSummary() {
+  var list = [];
+  for (var i = 0; i < 4; i++) {
+    // rank = how many players have a higher score
+    var higher = 0;
+    for (var j = 0; j < 4; j++) {
+      if (totals[j] > totals[i]) higher++;
+    }
+    list.push({ name: names[i], score: totals[i], rank: ranks[higher] });
+  }
+  list.sort(function (a, b) {
+    return b.score - a.score;
+  });
+
+  var html = "<h2>Summary after " + rows.length + " round(s)</h2>";
+  for (var k = 0; k < list.length; k++) {
+    html += '<div class="rank-row"><span>' + safe(list[k].name) + '</span>';
+    html += '<span>' + list[k].score + ' pts &nbsp;<b>' + list[k].rank + '</b></span></div>';
+  }
+  getEl("sumBox").innerHTML = html;
+  getEl("sumBox").style.display = "block";
+}
+
+// ===== Connect the main buttons =====
+getEl("startBtn").onclick = startGame;
+getEl("sumBtn").onclick = showSummary;
+
+    })();
+
+    // ===== MENU buttons =====
+    getEl("modeLocal").onclick = function () {
+      showScreen("l-setup");
+    };
+    getEl("modeOnline").onclick = function () {
+      showScreen("home");
+    };
+    getEl("lBackBtn").onclick = function () {
+      showScreen("menu");
+    };
+    getEl("lMenuBtn").onclick = function () {
+      if (confirm("Menu te ferot gele ei game er score hariye jabe. Jabe?")) {
+        location.reload();
+      }
+    };
+    getEl("homeBackBtn").onclick = function () {
+      resetConnection();
+      setStatus("", false);
+      getEl("createBtn").disabled = false;
+      getEl("joinBtn").disabled = false;
+      showScreen("menu");
+    };
+
+    // start: if we were in an online game before (refresh), go back to it. Otherwise show the menu
+    if (!resumeSession()) {
+      showScreen("menu");
+    }
+  </script>
+</body>
+
+</html>
